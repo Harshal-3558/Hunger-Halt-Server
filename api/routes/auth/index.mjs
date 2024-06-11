@@ -34,7 +34,7 @@ router.post("/auth/login", (req, res, next) => {
       if (err) {
         return res.status(500).send({ message: "Login error" });
       }
-      return res.sendStatus(200);
+      return res.status(200).send({ message: true });
     });
   })(req, res, next);
 });

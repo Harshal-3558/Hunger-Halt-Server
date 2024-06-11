@@ -5,6 +5,7 @@ import routes from "./routes/routes.mjs";
 import passport from "passport";
 import session from "express-session";
 import MongoStore from "connect-mongo";
+import cors from "cors";
 
 const app = express();
 const port = 3000;
@@ -17,6 +18,8 @@ mongoose
   .catch((err) => {
     console.log(err);
   });
+
+app.use(cors());
 
 app.use(express.json());
 
