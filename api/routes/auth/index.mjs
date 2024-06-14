@@ -34,7 +34,7 @@ router.post("/auth/login", (req, res, next) => {
       if (err) {
         return res.status(500).send({ message: "Login error" });
       }
-      return res.status(200).send({ message: true });
+      return res.status(200).send({ success: true, user: req.user });
     });
   })(req, res, next);
 });
@@ -48,7 +48,8 @@ router.post("/auth/logout", (req, res) => {
 });
 
 router.get("/auth/authStatus", (req, res) => {
-  console.log(req.session);
+  // console.log('Session:', req.session);
+  // console.log('User:', req.user);
   if (req.user) {
     // User is logged in
     res.status(200).send({ loggedIn: true, user: req.user });
