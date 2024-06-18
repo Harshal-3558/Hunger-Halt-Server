@@ -72,17 +72,17 @@ export const io = new SocketIOServer(httpServer, {
 
 // Setup socket.io connection
 io.on("connection", (socket) => {
-  console.log("a user connected");
+  // console.log("a user connected");
 
   socket.on("disconnect", () => {
-    console.log("user disconnected");
+    // console.log("user disconnected");
   });
 
   // Handle other socket events here
   socket.on("message", (msg) => {
-    console.log("message: " + msg);
+    // console.log("message: " + msg);
     // You can emit messages back to the clients if needed
-    socket.emit("message", "Hello from server");
+    // socket.emit("message", "Hello from server");
   });
 });
 
