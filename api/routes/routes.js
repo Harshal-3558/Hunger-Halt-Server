@@ -1,7 +1,7 @@
 import { Router } from "express";
-import authRouter from "./auth/index.mjs";
-import userRouter from "./user/index.mjs";
-import locationRouter from "./location/index.mjs"
+import authRouter from "./auth/index.js";
+import userRouter from "./user/user.js";
+import locationRouter from "./location/location.js"
 
 const router = Router();
 

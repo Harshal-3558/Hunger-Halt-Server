@@ -1,13 +1,18 @@
 import express from "express";
 import mongoose from "mongoose";
 import "dotenv/config";
-import routes from "./routes/routes.mjs";
+import routes from "./routes/routes.js";
 import passport from "passport";
 import session from "express-session";
 import MongoStore from "connect-mongo";
 import cors from "cors";
-import { Server as SocketIOServer } from "socket.io"; // Import Socket.io
-import { createServer } from "http"; // Import http server from node
+import { Server as SocketIOServer } from "socket.io";
+import { createServer } from "http";
+import Redis from "ioredis";
+import { createBullBoard } from "@bull-board/api";
+import { BullAdapter } from "@bull-board/api/bullAdapter.js";
+import { ExpressAdapter } from "@bull-board/express";
+import { foodExpiryQueue } from "./queue/foodExpiry.js";
 
 const app = express();
 const port = 3000;
@@ -21,9 +26,18 @@ mongoose
     console.log(err);
   });
 
+const client = new Redis({
+  port: process.env.REDIS_DB_PORT,
+  host: process.env.REDIS_DB_HOST,
+  password: process.env.REDIS_DB_PASSWORD,
+});
+
+client.on("error", (err) => console.log("Redis Client Error", err));
+client.on("connect", () => console.log("Connected to Redis"));
+
 app.use(
   cors({
-    origin: process.env.CLIENT_HOST, // Adjust this to your frontend domain
+    origin: process.env.CLIENT_HOST,
     credentials: true,
   })
 );
@@ -46,8 +60,17 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
-
 app.use(routes);
+
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath("/admin/queues");
+
+const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
+  queues: [new BullAdapter(foodExpiryQueue)],
+  serverAdapter: serverAdapter,
+});
+
+app.use("/admin/queues", serverAdapter.getRouter());
 
 app.get("/", (req, res) => {
   res.send("This is Hunger Halt Backend!");
@@ -58,35 +81,30 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something broke!");
 });
 
-// Create HTTP server and wrap the Express app
 const httpServer = createServer(app);
 
-// Attach socket.io to the HTTP server
 export const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: process.env.CLIENT_HOST, // Adjust this to your frontend domain
+    origin: process.env.CLIENT_HOST,
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
-// Setup socket.io connection
 io.on("connection", (socket) => {
-  // console.log("a user connected");
-
   socket.on("disconnect", () => {
-    // console.log("user disconnected");
-  });
-
-  // Handle other socket events here
-  socket.on("message", (msg) => {
-    // console.log("message: " + msg);
-    // You can emit messages back to the clients if needed
-    // socket.emit("message", "Hello from server");
+    console.log("user disconnected");
   });
 });
 
-// Start the server
+process.on("SIGINT", async () => {
+  await client.quit();
+  process.exit(0);
+});
+
 httpServer.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
+  console.log(`Bull Board available at http://localhost:${port}/admin/queues`);
 });
+
+export { client };

@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { hashPassword } from "./hash.mjs";
+import { hashPassword } from "./hash.js";
 import { User } from "../../schemas/user.js";
-import "./strategies/local-strategies.mjs";
-import "./strategies/github-straegies.mjs";
+import "./strategies/local-strategies.js";
+import "./strategies/github-straegies.js";
 import passport from "passport";
 
 const router = Router();
