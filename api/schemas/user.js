@@ -11,6 +11,7 @@ const userSchema = new Schema({
   },
   workingDays: { type: [String] }, // Specify the type of elements in the array
   password: { type: String, required: true },
+  FCMtoken: { type: String, required: true },
 });
 
 userSchema.index({ currentLocation: "2dsphere" });

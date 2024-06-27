@@ -19,7 +19,12 @@ const foodSchema = new Schema(
     remainingShelfLife: { type: String },
     assignedVolunteerName: { type: String, require: true },
     assignedVolunteerEmail: { type: String, require: true },
-    assignedSpot: { type: String, require: true },
+    hungerSpotID: { type: String, require: true },
+    assignedSpotAddress: { type: String, require: true },
+    assignedSpotCoord: {
+      type: { type: String, default: "Point" },
+      coordinates: [Number],
+    },
   },
   {
     timestamps: true, // Enable automatic timestamping

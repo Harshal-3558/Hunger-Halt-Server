@@ -13,6 +13,9 @@ import { createBullBoard } from "@bull-board/api";
 import { BullAdapter } from "@bull-board/api/bullAdapter.js";
 import { ExpressAdapter } from "@bull-board/express";
 import { foodExpiryQueue } from "./queue/foodExpiry.js";
+import { hungerSpotQueue } from "./queue/hungerSpot.js";
+import admin from "firebase-admin";
+import { readFile } from "fs/promises";
 
 const app = express();
 const port = 3000;
@@ -35,6 +38,19 @@ const client = new Redis({
 client.on("error", (err) => console.log("Redis Client Error", err));
 client.on("connect", () => console.log("Connected to Redis"));
 
+const serviceAccount = JSON.parse(
+  await readFile(
+    new URL(
+      "./hunger-halt-4b87e-firebase-adminsdk-l6o4v-a2c254375d.json",
+      import.meta.url
+    )
+  )
+);
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 app.use(
   cors({
     origin: process.env.CLIENT_HOST,
@@ -50,7 +66,7 @@ app.use(
     saveUninitialized: false,
     resave: false,
     cookie: {
-      secure: false,
+      maxAge: 60000 * 60,
     },
     store: MongoStore.create({
       client: mongoose.connection.getClient(),
@@ -66,7 +82,7 @@ const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath("/admin/queues");
 
 const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
-  queues: [new BullAdapter(foodExpiryQueue)],
+  queues: [new BullAdapter(foodExpiryQueue), new BullAdapter(hungerSpotQueue)],
   serverAdapter: serverAdapter,
 });
 
@@ -93,7 +109,7 @@ export const io = new SocketIOServer(httpServer, {
 
 io.on("connection", (socket) => {
   socket.on("disconnect", () => {
-    console.log("user disconnected");
+    // console.log("user disconnected");
   });
 });
 
@@ -108,3 +124,4 @@ httpServer.listen(port, () => {
 });
 
 export { client };
+export { admin };

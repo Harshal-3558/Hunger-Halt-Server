@@ -9,8 +9,10 @@ const hungerSpotSchema = new Schema({
     coordinates: [Number],
   },
   address: { type: String, require: true },
-  requiredQTY: { type: Number, require: true },
+  remainingBeneficiary: { type: Number, require: true },
   image: { type: String, require: true },
+  totalBeneficiary: { type: Number, required: true },
+  isActive: { type: Boolean, require: true },
 });
 
 hungerSpotSchema.index({ location: "2dsphere" });

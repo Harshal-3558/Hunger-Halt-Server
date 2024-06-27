@@ -1,5 +1,5 @@
 import { Router } from "express";
-import authRouter from "./auth/index.js";
+import authRouter from "./auth/auth.js";
 import userRouter from "./user/user.js";
 import locationRouter from "./location/location.js"
 

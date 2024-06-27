@@ -12,7 +12,7 @@ const foodExpiryQueue = new Queue("foodExpiry", {
   },
 });
 
-foodExpiryQueue.process(async (job) => {
+foodExpiryQueue.process(10, async (job) => {
   const { shelfLife, id } = job.data;
   const currentTime = new Date();
   const expiryTime = new Date(
