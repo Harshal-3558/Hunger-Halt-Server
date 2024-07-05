@@ -57,10 +57,14 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
+const allowedOrigins = [
+  process.env.CLIENT_HOST,
+  "https://hunger-halt-itmeeg1nm-harshal-patils-projects-3a972f73.vercel.app",
+];
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      const allowedOrigins = [process.env.CLIENT_HOST, "http://localhost:5173"];
       if (!origin || allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
@@ -115,7 +119,7 @@ const httpServer = createServer(app);
 
 export const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: process.env.CLIENT_HOST,
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
