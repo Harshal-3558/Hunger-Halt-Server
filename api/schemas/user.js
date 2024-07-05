@@ -9,9 +9,10 @@ const userSchema = new Schema({
     type: { type: String, default: "Point" },
     coordinates: [Number],
   },
-  workingDays: { type: [String] }, // Specify the type of elements in the array
+  organization: { type: String },
+  workingDays: { type: [String] },
   password: { type: String, required: true },
-  FCMtoken: { type: String, required: true },
+  FCMtoken: { type: String },
 });
 
 userSchema.index({ currentLocation: "2dsphere" });

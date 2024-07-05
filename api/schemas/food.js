@@ -7,6 +7,7 @@ const foodSchema = new Schema(
     donorName: { type: String, require: true },
     donorEmail: { type: String, require: true },
     qty: { type: Number, require: true },
+    beneficiary: { type: Number, require: true },
     shelfLife: { type: Number, require: true },
     location: {
       type: { type: String, default: "Point" },

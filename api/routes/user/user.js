@@ -20,45 +20,41 @@ router.post("/user/updateFCM", async (req, res) => {
   }
 });
 
-router.post("/user/selectRole", async (req, res) => {
-  const { id, role } = req.body;
-  try {
-    const updateRole = await User.findByIdAndUpdate(
-      id,
-      { role: role },
-      { new: true }
-    );
-    if (!updateRole) {
-      return res.status(400).send({ message: "Something went worng" });
-    }
-    res.status(200).send(updateRole);
-  } catch (err) {}
-});
-
-router.post("/user/volunteerStatus", async (req, res) => {
-  const { location, email, days } = req.body;
+router.post("/user/updateDetails", async (req, res) => {
+  const { id, role, location, org, days } = req.body;
   const geoLocation = {
     type: "Point",
     coordinates: location,
   };
   try {
-    await User.findOneAndUpdate(
-      { email },
-      { currentLocation: geoLocation, workingDays: days }
-    );
-    res.status(200).send({ message: "Successfull" });
-  } catch (error) {
-    res.sendStatus(400);
+    const updateRole = await User.findByIdAndUpdate(id, {
+      role,
+      organization: org,
+      currentLocation: geoLocation,
+      workingDays: days,
+    });
+    res.status(200).send(updateRole);
+  } catch (err) {
+    res.status(400).send({ message: "Something went worng" });
   }
 });
 
 router.post("/user/donateFood", async (req, res) => {
-  const { foodName, donorName, donorEmail, qty, shelfLife, location, address } = req.body;
+  const {
+    foodName,
+    donorName,
+    donorEmail,
+    beneficiary,
+    qty,
+    shelfLife,
+    location,
+    address,
+  } = req.body;
 
   try {
     const geoLocation = {
       type: "Point",
-      coordinates: [location.longitude, location.latitude],
+      coordinates: location,
     };
 
     const donate = await Food.create({
@@ -67,14 +63,25 @@ router.post("/user/donateFood", async (req, res) => {
       donorEmail,
       qty,
       shelfLife,
+      beneficiary,
       location: geoLocation,
       address,
+    });
+
+    const maxDistance = 10 * 1000;
+
+    const users = await User.find({
+      currentLocation: {
+        $near: {
+          $geometry: geoLocation,
+          $maxDistance: maxDistance,
+        },
+      },
     });
 
     let volEmails = [];
     let fcmTokens = [];
 
-    const users = await User.find({}); // Assuming you fetch users from the database
     users.forEach((user) => {
       volEmails.push(user.email);
       if (user.FCMtoken) {
@@ -100,13 +107,14 @@ router.post("/user/donateFood", async (req, res) => {
       volunteerEmails: volEmails,
     });
 
-    res.status(200).send({ message: "Food details added to DB and notifications sent" });
+    res
+      .status(200)
+      .send({ message: "Food details added to DB and notifications sent" });
   } catch (err) {
     console.error("Error in donateFood:", err);
     res.status(400).send({ message: "Unsuccessful", error: err.message });
   }
 });
-
 
 router.post("/user/createHungerSpot", async (req, res) => {
   const { name, email, location, address, requiredQTY, image } = req.body;
@@ -148,6 +156,16 @@ router.post("/user/volunteerUpdates", async (req, res) => {
   try {
     const data = await Work.find({ volunteerEmails: { $in: [email] } });
     res.status(200).send(data);
+  } catch (error) {
+    res.sendStatus(400);
+  }
+});
+
+router.post("/user/volunteerUpdatesDetails", async (req, res) => {
+  const { donationID } = req.body;
+  try {
+    const foodData = await Food.findById(donationID);
+    res.status(200).send(foodData);
   } catch (error) {
     res.sendStatus(400);
   }
@@ -211,9 +229,14 @@ router.post("/user/getAssignedHungerSpot", async (req, res) => {
       assignedVolunteerEmail: email,
       foodQualityStatus: "verified",
     });
-    const data = await HungerSpot.findById(value.hungerSpotID);
-    res.status(200).send(data);
+    if (value) {
+      const data = await HungerSpot.findById(value.hungerSpotID);
+      res.status(200).send(data);
+    } else {
+      res.status(200).send({});
+    }
   } catch (error) {
+    console.log(error);
     res.status(400).send(error);
   }
 });

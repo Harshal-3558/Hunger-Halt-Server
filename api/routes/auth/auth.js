@@ -8,14 +8,17 @@ import passport from "passport";
 const router = Router();
 
 router.post("/auth/signup", async (req, res) => {
-  const { email, name, password, token } = req.body;
+  const { email, name, password } = req.body;
   try {
     const hashedPassword = hashPassword(password);
     const value = await User.create({
       email,
       name,
       password: hashedPassword,
-      token
+      currentLocation: {
+        type: "Point",
+        coordinates: [0, 0],
+      },
     });
     res.status(200).send({ message: "Account created" });
   } catch (err) {

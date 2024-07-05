@@ -15,7 +15,8 @@ import { ExpressAdapter } from "@bull-board/express";
 import { foodExpiryQueue } from "./queue/foodExpiry.js";
 import { hungerSpotQueue } from "./queue/hungerSpot.js";
 import admin from "firebase-admin";
-import { readFile } from "fs/promises";
+import { Food } from "./schemas/food.js";
+import { Work } from "./schemas/work.js";
 
 const app = express();
 const port = 3000;
@@ -24,6 +25,14 @@ mongoose
   .connect(process.env.MONGO_DB_URL)
   .then(() => {
     console.log("Connected to DB");
+    const foodChangeStream = Food.watch();
+    foodChangeStream.on("change", (change) => {
+      io.emit("FoodDBChange", change);
+    });
+    const workChangeStream = Work.watch();
+    workChangeStream.on("change", (change) => {
+      io.emit("WorkDBChange", change);
+    });
   })
   .catch((err) => {
     console.log(err);
@@ -38,14 +47,11 @@ const client = new Redis({
 client.on("error", (err) => console.log("Redis Client Error", err));
 client.on("connect", () => console.log("Connected to Redis"));
 
-const serviceAccount = JSON.parse(
-  await readFile(
-    new URL(
-      "./hunger-halt-4b87e-firebase-adminsdk-l6o4v-a2c254375d.json",
-      import.meta.url
-    )
-  )
-);
+const serviceAccount = {
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+};
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -53,7 +59,15 @@ admin.initializeApp({
 
 app.use(
   cors({
-    origin: process.env.CLIENT_HOST,
+    origin: function (origin, callback) {
+      const allowedOrigins = [process.env.CLIENT_HOST, "http://localhost:5173"];
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        console.log("CORS error:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
