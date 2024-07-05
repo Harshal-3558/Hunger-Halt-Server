@@ -22,20 +22,26 @@ router.post("/user/updateFCM", async (req, res) => {
 
 router.post("/user/updateDetails", async (req, res) => {
   const { id, role, location, org, days } = req.body;
-  const geoLocation = {
-    type: "Point",
-    coordinates: location,
+  let updateData = {
+    role,
+    organization: org,
+    workingDays: days,
   };
+
+  if (location.length > 0) {
+    updateData.currentLocation = {
+      type: "Point",
+      coordinates: location,
+    };
+  }
+
   try {
-    const updateRole = await User.findByIdAndUpdate(id, {
-      role,
-      organization: org,
-      currentLocation: geoLocation,
-      workingDays: days,
+    const updateRole = await User.findByIdAndUpdate(id, updateData, {
+      new: true,
     });
     res.status(200).send(updateRole);
   } catch (err) {
-    res.status(400).send({ message: "Something went worng" });
+    res.status(400).send({ message: "Something went wrong" });
   }
 });
 
