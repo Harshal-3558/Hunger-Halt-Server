@@ -59,10 +59,14 @@ admin.initializeApp({
 
 const allowedOrigins = [process.env.CLIENT_HOST, process.env.CLIENT_HOST1];
 
+app.set("trust proxy", 1);
+
 app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
 
@@ -75,6 +79,9 @@ app.use(
     resave: false,
     cookie: {
       maxAge: 60000 * 60,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Must be 'none' to enable cross-site delivery
     },
     store: MongoStore.create({
       client: mongoose.connection.getClient(),
