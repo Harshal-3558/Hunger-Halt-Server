@@ -57,10 +57,7 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-const allowedOrigins = [
-  process.env.CLIENT_HOST,
-  "https://hunger-halt-itmeeg1nm-harshal-patils-projects-3a972f73.vercel.app",
-];
+const allowedOrigins = [process.env.CLIENT_HOST, process.env.CLIENT_HOST1];
 
 app.use(
   cors({
