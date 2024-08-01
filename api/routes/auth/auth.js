@@ -2,7 +2,7 @@ import { Router } from "express";
 import { hashPassword } from "./hash.js";
 import { User } from "../../schemas/user.js";
 import "./strategies/local-strategies.js";
-import "./strategies/github-straegies.js";
+import "./strategies/github-strategy.js";
 import passport from "passport";
 
 const router = Router();
@@ -67,10 +67,34 @@ router.get("/auth/github", passport.authenticate("github"));
 
 router.get(
   "/auth/github/callback",
-  passport.authenticate("github", { failureRedirect: "/login" }),
+  passport.authenticate("github", {
+    failureRedirect: "http://localhost:5173/login",
+  }),
   (req, res) => {
-    // Successful authentication, redirect home.
-    res.redirect("/");
+    const data = res.req.user;
+    if (data.role) {
+      res.redirect(`http://localhost:5173/${data.role}`);
+    } else {
+      res.redirect("http://localhost:5173/selectrole");
+    }
+  }
+);
+
+router.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  (req, res) => {
+    const data = res.req.user;
+    if (data.role) {
+      res.redirect(`http://localhost:5173/${data.role}`);
+    } else {
+      res.redirect("http://localhost:5173/selectrole");
+    }
   }
 );
 

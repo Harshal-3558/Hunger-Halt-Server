@@ -7,15 +7,19 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: process.env.SERVER_HOST,
+      callbackURL: process.env.CALLBACK_URL,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        let user = await User.findOne({ githubId: profile.id });
+        let user = await User.findOne({ email: profile.emails[0].value });
         if (!user) {
           user = await User.create({
-            githubId: profile.id,
+            email: profile.emails[0].value,
             name: profile.displayName,
+            currentLocation: {
+              type: "Point",
+              coordinates: [0, 0],
+            },
           });
         }
         return done(null, user);

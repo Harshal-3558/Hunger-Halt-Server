@@ -7,6 +7,7 @@ import { Work } from "../../schemas/work.js";
 import { foodExpiryQueue } from "../../queue/foodExpiry.js";
 import { hungerSpotQueue } from "../../queue/hungerSpot.js";
 import { sendFCMMessage } from "../../fcm.js";
+import { NGO } from "../../schemas/ngo.js";
 
 const router = Router();
 
@@ -39,6 +40,13 @@ router.post("/user/updateDetails", async (req, res) => {
     const updateRole = await User.findByIdAndUpdate(id, updateData, {
       new: true,
     });
+    if (updateRole.role === "ngo") {
+      await NGO.create({
+        adminName: updateRole.name,
+        email: updateRole.email,
+        workingLocation: updateData.currentLocation,
+      });
+    }
     res.status(200).send(updateRole);
   } catch (err) {
     res.status(400).send({ message: "Something went wrong" });
@@ -125,16 +133,18 @@ router.post("/user/donateFood", async (req, res) => {
 router.post("/user/createHungerSpot", async (req, res) => {
   const { name, email, location, address, requiredQTY, image } = req.body;
   try {
+    console.log(location);
     const geoLocation = {
       type: "Point",
-      coordinates: [location.longitude, location.latitude],
+      coordinates: location,
     };
+    console.log(geoLocation);
     await HungerSpot.create({
       name,
       email,
       location: geoLocation,
       address,
-      requiredQTY,
+      totalBeneficiary: requiredQTY,
       image,
     });
     res.status(200).send({ message: "Hunger Spot details added to DB" });
@@ -143,6 +153,7 @@ router.post("/user/createHungerSpot", async (req, res) => {
       name,
     });
   } catch (err) {
+    console.log(err);
     res.status(400).send({ message: "Unsuccessful" });
   }
 });
@@ -209,20 +220,47 @@ router.post("/user/verifyFood", async (req, res) => {
       shelfLife,
       foodQualityStatus,
     });
-    const spot = await HungerSpot.findOne({
+    const hungerSpot = await HungerSpot.findOne({
       location: {
         $near: {
           $geometry: foodData.location,
         },
       },
     });
-    await Food.findByIdAndUpdate(id, {
-      assignedSpotAddress: spot.address,
-      assignedSpotCoord: spot.location,
-      hungerSpotID: spot._id,
-    });
+    if (hungerSpot) {
+      await Food.findByIdAndUpdate(id, {
+        assignedSpotAddress: hungerSpot.address,
+        assignedSpotCoord: hungerSpot.location,
+        SpotID: hungerSpot._id,
+      });
+    } else {
+      const food = {
+        foodName: foodData.foodName,
+        foodQTY: foodData.qty,
+        foodShelf: foodData.shelfLife,
+        remainingShelf: foodData.shelfLife,
+      };
+      const ngoSpot = await NGO.findOneAndUpdate(
+        {
+          currentLocation: {
+            $near: {
+              $geometry: foodData.location,
+            },
+          },
+        },
+        {
+          $push: { foodStored: food },
+        },
+        { new: true } // return the updated document
+      );
+      await Food.findByIdAndUpdate(id, {
+        assignedSpotAddress: ngoSpot.workingAddress,
+        assignedSpotCoord: ngoSpot.workingLocation,
+        SpotID: ngoSpot._id,
+      });
+    }
     foodExpiryQueue.add({ shelfLife, id });
-    res.status(200).send(spot);
+    res.status(200).send(hungerSpot);
   } catch (error) {
     res.sendStatus(400);
   }
@@ -236,7 +274,7 @@ router.post("/user/getAssignedHungerSpot", async (req, res) => {
       foodQualityStatus: "verified",
     });
     if (value) {
-      const data = await HungerSpot.findById(value.hungerSpotID);
+      const data = await HungerSpot.findById(value.SpotID);
       res.status(200).send(data);
     } else {
       res.status(200).send({});
@@ -270,7 +308,7 @@ router.post("/user/completeDonation", async (req, res) => {
   const { spotID, beneficiaryNO, beneficiary } = req.body;
   try {
     await Food.findOneAndUpdate(
-      { hungerSpotID: spotID },
+      { SpotID: spotID },
       { foodDonationStatus: "verified" }
     );
     const remainingBeneficiary = beneficiaryNO - beneficiary;

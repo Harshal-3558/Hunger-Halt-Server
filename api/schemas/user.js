@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { Schema } from "mongoose";
 
 const userSchema = new Schema({
-  email: { type: String, required: true, unique: true },
+  email: { type: String, unique: true },
   name: { type: String },
   role: { type: String },
   currentLocation: {
@@ -11,7 +11,7 @@ const userSchema = new Schema({
   },
   organization: { type: String },
   workingDays: { type: [String] },
-  password: { type: String, required: true },
+  password: { type: String },
   FCMtoken: { type: String },
 });
 
