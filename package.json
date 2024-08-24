@@ -2,6 +2,7 @@
   "dependencies": {
     "@bull-board/api": "^5.20.2",
     "@bull-board/express": "^5.20.2",
+    "@bull-board/ui": "^5.21.1",
     "bcryptjs": "^2.4.3",
     "bull": "^4.13.1",
     "connect-mongo": "^5.1.0",

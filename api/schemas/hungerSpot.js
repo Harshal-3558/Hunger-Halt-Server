@@ -12,7 +12,7 @@ const hungerSpotSchema = new Schema({
   remainingBeneficiary: { type: Number, require: true },
   image: { type: String, require: true },
   totalBeneficiary: { type: Number, required: true },
-  isActive: { type: Boolean, require: true },
+  isActive: { type: Boolean, default: true },
 });
 
 hungerSpotSchema.index({ location: "2dsphere" });

@@ -26,6 +26,7 @@ const foodSchema = new Schema(
       type: { type: String, default: "Point" },
       coordinates: [Number],
     },
+    SpotID: { type: String },
   },
   {
     timestamps: true, // Enable automatic timestamping

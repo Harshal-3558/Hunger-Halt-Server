@@ -17,6 +17,7 @@ import { hungerSpotQueue } from "./queue/hungerSpot.js";
 import admin from "firebase-admin";
 import { Food } from "./schemas/food.js";
 import { Work } from "./schemas/work.js";
+import { HungerSpot } from "./schemas/hungerSpot.js";
 
 const app = express();
 const port = 3000;
@@ -32,6 +33,10 @@ mongoose
     const workChangeStream = Work.watch();
     workChangeStream.on("change", (change) => {
       io.emit("WorkDBChange", change);
+    });
+    const HPChangeStream = HungerSpot.watch();
+    HPChangeStream.on("change", (change) => {
+      io.emit("HPDBChange", change);
     });
   })
   .catch((err) => {
