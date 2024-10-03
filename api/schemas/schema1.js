@@ -1,6 +1,17 @@
 import mongoose from "mongoose";
 import { Schema } from "mongoose";
 
+// Donor Updates Schema
+const donorUpdatesSchema = new Schema({
+  name: { type: String, require: true },
+  email: { type: String, require: true },
+  location: { type: Object, require: true },
+  address: { type: String, require: true },
+  requiredQTY: { type: Number, require: true },
+  image: { type: String, require: true },
+});
+
+// Food Schema
 const foodSchema = new Schema(
   {
     foodName: { type: String, require: true },
@@ -35,4 +46,24 @@ const foodSchema = new Schema(
 
 foodSchema.index({ location: "2dsphere" });
 
+// Hunger Spot Schema
+const hungerSpotSchema = new Schema({
+  name: { type: String, require: true },
+  email: { type: String, require: true },
+  location: {
+    type: { type: String, default: "Point" },
+    coordinates: [Number],
+  },
+  address: { type: String, require: true },
+  remainingBeneficiary: { type: Number, require: true },
+  image: { type: String, require: true },
+  totalBeneficiary: { type: Number, required: true },
+  isActive: { type: Boolean, default: true },
+});
+
+hungerSpotSchema.index({ location: "2dsphere" });
+
+// Export models
+export const DonorUpdates = mongoose.model("DonorUpdates", donorUpdatesSchema);
 export const Food = mongoose.model("Food", foodSchema);
+export const HungerSpot = mongoose.model("HungerSpot", hungerSpotSchema);

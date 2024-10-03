@@ -12,12 +12,10 @@ import Redis from "ioredis";
 import { createBullBoard } from "@bull-board/api";
 import { BullAdapter } from "@bull-board/api/bullAdapter.js";
 import { ExpressAdapter } from "@bull-board/express";
-import { foodExpiryQueue } from "./queue/foodExpiry.js";
-import { hungerSpotQueue } from "./queue/hungerSpot.js";
+import { foodExpiryQueue, hungerSpotQueue } from "./queue/queue.js";
 import admin from "firebase-admin";
-import { Food } from "./schemas/food.js";
-import { Work } from "./schemas/work.js";
-import { HungerSpot } from "./schemas/hungerSpot.js";
+import { Food,HungerSpot } from "./schemas/schema1.js";
+import { Work } from "./schemas/schema2.js";
 
 const app = express();
 const port = 3000;
@@ -70,8 +68,8 @@ app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -85,8 +83,8 @@ app.use(
     cookie: {
       maxAge: 60000 * 60,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Must be 'none' to enable cross-site delivery
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Must be 'none' to enable cross-site delivery
     },
     store: MongoStore.create({
       client: mongoose.connection.getClient(),
