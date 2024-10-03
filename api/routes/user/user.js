@@ -1,13 +1,9 @@
 import { Router } from "express";
-import { User } from "../../schemas/user.js";
-import { Food } from "../../schemas/food.js";
+import { User, NGO, Work } from "../../schemas/schema2.js";
+import { Food, HungerSpot } from "../../schemas/schema1.js";
 import { io } from "../../index.js";
-import { HungerSpot } from "../../schemas/hungerSpot.js";
-import { Work } from "../../schemas/work.js";
-import { foodExpiryQueue } from "../../queue/foodExpiry.js";
-import { hungerSpotQueue } from "../../queue/hungerSpot.js";
+import { foodExpiryQueue, hungerSpotQueue } from "../../queue/queue.js";
 import { sendFCMMessage } from "../../fcm.js";
-import { NGO } from "../../schemas/ngo.js";
 
 const router = Router();
 
@@ -283,8 +279,13 @@ router.post("/user/getAssignedHungerSpot", async (req, res) => {
       assignedVolunteerEmail: email,
       foodDonationStatus: "pending",
     });
+    // console.log(value.SpotID);
     if (value) {
-      const data = await HungerSpot.findOne({_id: value.SpotID, isActive: true});
+      const data = await HungerSpot.findOne({
+        _id: value.SpotID,
+        isActive: true,
+      });
+      console.log(data);
       res.status(200).send(data);
     } else {
       res.status(200).send({});
@@ -316,7 +317,7 @@ router.post("/user/checkBeforeDonation", async (req, res) => {
 
 router.post("/user/completeDonation", async (req, res) => {
   const { spotID, beneficiaryNO, beneficiary } = req.body;
-  console.log(req.body)
+  console.log(req.body);
   try {
     await Food.findOneAndUpdate(
       { SpotID: spotID },
@@ -327,7 +328,7 @@ router.post("/user/completeDonation", async (req, res) => {
       remainingBeneficiary,
       isActive: false,
     });
-    console.log(value)
+    console.log(value);
     hungerSpotQueue.add({ id: spotID });
     res.sendStatus(200);
   } catch (error) {

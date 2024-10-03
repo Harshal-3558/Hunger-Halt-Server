@@ -1,11 +1,15 @@
 import { Router } from "express";
-import { hashPassword } from "./hash.js";
-import { User } from "../../schemas/user.js";
-import "./strategies/local-strategies.js";
-import "./strategies/github-strategy.js";
+import "./strategies.js";
 import passport from "passport";
+import bycrpt from "bcryptjs";
+import { User } from "../../schemas/schema2.js";
 
 const router = Router();
+const saltRound = 10;
+export const hashPassword = (password) => {
+  const salt = bycrpt.genSaltSync(saltRound);
+  return bycrpt.hashSync(password, salt);
+};
 
 router.post("/auth/signup", async (req, res) => {
   const { email, name, password } = req.body;
