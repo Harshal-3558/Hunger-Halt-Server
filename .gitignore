@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 .env
 hunger-halt-4b87e-firebase-adminsdk-l6o4v-a2c254375d.json
+.vercel
+
+api/routes/user/uploads/
