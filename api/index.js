@@ -16,6 +16,7 @@ import { foodExpiryQueue, hungerSpotQueue } from "./queue/queue.js";
 import admin from "firebase-admin";
 import { Food,HungerSpot } from "./schemas/schema1.js";
 import { Work } from "./schemas/schema2.js";
+import bodyParser from "body-parser"
 
 const app = express();
 const port = 3000;
@@ -73,6 +74,8 @@ app.use(
   })
 );
 
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.json());
 
 app.use(
