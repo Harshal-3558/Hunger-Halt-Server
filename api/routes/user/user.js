@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { User, NGO, Work } from "../../schemas/schema2.js";
 import { Food, HungerSpot } from "../../schemas/schema1.js";
-import { io } from "../../index.js";
+import { io } from "../../server.js";
 import { foodExpiryQueue, hungerSpotQueue } from "../../queue/queue.js";
 import { sendFCMMessage } from "../../fcm.js";
 
