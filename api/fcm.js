@@ -1,4 +1,4 @@
-import { admin } from "./index.js";
+import { admin } from "./server.js";
 
 async function sendFCMMessage(token, title, body, data = {}) {
   try {
