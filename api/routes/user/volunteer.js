@@ -37,12 +37,8 @@ async function handleImageProcessing(req, res, processingFunction) {
 }
 
 async function checkHungerSpot(imagePath) {
-  const genAI = new GoogleGenerativeAI(
-    "AIzaSyAtcnJg9RWRw5uM0lHiA5yg-izBghW4yVU"
-  );
-  const fileManager = new GoogleAIFileManager(
-    "AIzaSyAtcnJg9RWRw5uM0lHiA5yg-izBghW4yVU"
-  );
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI);
+  const fileManager = new GoogleAIFileManager(process.env.GEMINI);
   const model = genAI.getGenerativeModel({
     model: "gemini-1.5-flash-002",
     generationConfig: {
@@ -96,6 +92,34 @@ async function checkHungerSpot(imagePath) {
 
 router.post("/volunteer/checkHungerSpot", async (req, res) => {
   handleImageProcessing(req, res, checkHungerSpot);
+});
+
+router.post("/volunteer/createHungerSpot", async (req, res) => {
+  const { name, email, location, address, beneficiaries, image } = req.body;
+  try {
+    console.log(location);
+    const geoLocation = {
+      type: "Point",
+      coordinates: location,
+    };
+    console.log(geoLocation);
+    await HungerSpot.create({
+      name,
+      email,
+      location: geoLocation,
+      address,
+      totalBeneficiary: beneficiaries,
+      image,
+    });
+    res.status(200).send({ message: "Hunger Spot details added to DB" });
+    io.emit("newHungerSpot", {
+      message: "New Hunger Spot registered",
+      name,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(400).send({ message: "Unsuccessful" });
+  }
 });
 
 export default router;

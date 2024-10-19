@@ -55,122 +55,122 @@ router.post("/user/updateDetails", async (req, res) => {
   }
 });
 
-router.post("/user/donateFood", async (req, res) => {
-  const {
-    foodName,
-    donorName,
-    donorEmail,
-    beneficiary,
-    qty,
-    shelfLife,
-    location,
-    address,
-  } = req.body;
+// router.post("/user/donateFood", async (req, res) => {
+//   const {
+//     foodName,
+//     donorName,
+//     donorEmail,
+//     beneficiary,
+//     qty,
+//     shelfLife,
+//     location,
+//     address,
+//   } = req.body;
 
-  try {
-    const geoLocation = {
-      type: "Point",
-      coordinates: location,
-    };
+//   try {
+//     const geoLocation = {
+//       type: "Point",
+//       coordinates: location,
+//     };
 
-    const donate = await Food.create({
-      foodName,
-      donorName,
-      donorEmail,
-      qty,
-      shelfLife,
-      beneficiary,
-      location: geoLocation,
-      address,
-    });
+//     const donate = await Food.create({
+//       foodName,
+//       donorName,
+//       donorEmail,
+//       qty,
+//       shelfLife,
+//       beneficiary,
+//       location: geoLocation,
+//       address,
+//     });
 
-    const maxDistance = 10 * 1000;
+//     const maxDistance = 10 * 1000;
 
-    const users = await User.find({
-      currentLocation: {
-        $near: {
-          $geometry: geoLocation,
-          $maxDistance: maxDistance,
-        },
-      },
-    });
+//     const users = await User.find({
+//       currentLocation: {
+//         $near: {
+//           $geometry: geoLocation,
+//           $maxDistance: maxDistance,
+//         },
+//       },
+//     });
 
-    console.log(users);
+//     console.log(users);
 
-    let volEmails = [];
-    let fcmTokens = [];
+//     let volEmails = [];
+//     let fcmTokens = [];
 
-    users.forEach((user) => {
-      volEmails.push(user.email);
-      if (user.FCMtoken) {
-        fcmTokens.push(user.FCMtoken);
-      }
-    });
+//     users.forEach((user) => {
+//       volEmails.push(user.email);
+//       if (user.FCMtoken) {
+//         fcmTokens.push(user.FCMtoken);
+//       }
+//     });
 
-    // Send multicast message using sendFCMMessage function
-    if (fcmTokens.length > 0) {
-      const title = "New Food Donation";
-      const body = `${foodName} donated by ${donorName}`;
-      const data = { foodName, donorName };
+//     // Send multicast message using sendFCMMessage function
+//     if (fcmTokens.length > 0) {
+//       const title = "New Food Donation";
+//       const body = `${foodName} donated by ${donorName}`;
+//       const data = { foodName, donorName };
 
-      for (const token of fcmTokens) {
-        await sendFCMMessage(token, title, body, data);
-      }
-    }
+//       for (const token of fcmTokens) {
+//         await sendFCMMessage(token, title, body, data);
+//       }
+//     }
 
-    await Work.create({
-      donationID: donate._id,
-      donorName: donate.donorName,
-      donorAddress: donate.address,
-      volunteerEmails: volEmails,
-    });
+//     await Work.create({
+//       donationID: donate._id,
+//       donorName: donate.donorName,
+//       donorAddress: donate.address,
+//       volunteerEmails: volEmails,
+//     });
 
-    res
-      .status(200)
-      .send({ message: "Food details added to DB and notifications sent" });
-  } catch (err) {
-    console.error("Error in donateFood:", err);
-    res.status(400).send({ message: "Unsuccessful", error: err.message });
-  }
-});
+//     res
+//       .status(200)
+//       .send({ message: "Food details added to DB and notifications sent" });
+//   } catch (err) {
+//     console.error("Error in donateFood:", err);
+//     res.status(400).send({ message: "Unsuccessful", error: err.message });
+//   }
+// });
 
-router.post("/user/createHungerSpot", async (req, res) => {
-  const { name, email, location, address, beneficiaries, image } = req.body;
-  try {
-    console.log(location);
-    const geoLocation = {
-      type: "Point",
-      coordinates: location,
-    };
-    console.log(geoLocation);
-    await HungerSpot.create({
-      name,
-      email,
-      location: geoLocation,
-      address,
-      totalBeneficiary: beneficiaries,
-      image,
-    });
-    res.status(200).send({ message: "Hunger Spot details added to DB" });
-    io.emit("newHungerSpot", {
-      message: "New Hunger Spot registered",
-      name,
-    });
-  } catch (err) {
-    console.log(err);
-    res.status(400).send({ message: "Unsuccessful" });
-  }
-});
+// router.post("/user/createHungerSpot", async (req, res) => {
+//   const { name, email, location, address, beneficiaries, image } = req.body;
+//   try {
+//     console.log(location);
+//     const geoLocation = {
+//       type: "Point",
+//       coordinates: location,
+//     };
+//     console.log(geoLocation);
+//     await HungerSpot.create({
+//       name,
+//       email,
+//       location: geoLocation,
+//       address,
+//       totalBeneficiary: beneficiaries,
+//       image,
+//     });
+//     res.status(200).send({ message: "Hunger Spot details added to DB" });
+//     io.emit("newHungerSpot", {
+//       message: "New Hunger Spot registered",
+//       name,
+//     });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(400).send({ message: "Unsuccessful" });
+//   }
+// });
 
-router.post("/user/donationStatus", async (req, res) => {
-  const { email } = req.body;
-  try {
-    const data = await Food.find({ donorEmail: email });
-    res.status(200).send(data);
-  } catch (error) {
-    res.sendStatus(400);
-  }
-});
+// router.post("/user/donationStatus", async (req, res) => {
+//   const { email } = req.body;
+//   try {
+//     const data = await Food.find({ donorEmail: email });
+//     res.status(200).send(data);
+//   } catch (error) {
+//     res.sendStatus(400);
+//   }
+// });
 
 router.post("/user/volunteerUpdates", async (req, res) => {
   const { email } = req.body;
@@ -236,7 +236,7 @@ router.post("/user/verifyFood", async (req, res) => {
       await Food.findByIdAndUpdate(id, {
         assignedSpotAddress: hungerSpot.address,
         assignedSpotCoord: hungerSpot.location,
-        SpotID: hungerSpot._id,
+        hungerSpotID: hungerSpot._id,
       });
     } else {
       const food = {
@@ -274,15 +274,16 @@ router.post("/user/verifyFood", async (req, res) => {
 
 router.post("/user/getAssignedHungerSpot", async (req, res) => {
   const { email } = req.body;
+  console.log(email)
   try {
     const value = await Food.findOne({
       assignedVolunteerEmail: email,
       foodDonationStatus: "pending",
     });
-    // console.log(value.SpotID);
+    // console.log(value.hungerSpotID);
     if (value) {
       const data = await HungerSpot.findOne({
-        _id: value.SpotID,
+        _id: value.hungerSpotID,
         isActive: true,
       });
       console.log(data);
