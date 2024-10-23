@@ -58,50 +58,55 @@ const hungerSpotSchema = new Schema({
   remainingBeneficiary: { type: Number, require: true },
   image: { type: String, require: true },
   totalBeneficiary: { type: Number, required: true },
+  hash: { type: String, required: true },
   isActive: { type: Boolean, default: true },
 });
 hungerSpotSchema.index({ location: "2dsphere" });
 
 //Monthly Donation Schema
-const monthlyDonationSchema = new Schema({
-  month: {
-    type: String,
-    enum: [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ],
-    required: true
+const monthlyDonationSchema = new Schema(
+  {
+    month: {
+      type: String,
+      enum: [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ],
+      required: true,
+    },
+    year: {
+      type: Number,
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+    donorEmail: {
+      type: String,
+      required: true,
+    },
   },
-  year: {
-    type: Number,
-    required: true
-  },
-  amount: {
-    type: Number,
-    required: true
-  },
-  donor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Donor',
-    required: true
+  {
+    timestamps: true,
   }
-}, {
-  timestamps: true
-});
-
+);
 
 // Export models
 export const DonorUpdates = mongoose.model("DonorUpdates", donorUpdatesSchema);
 export const Food = mongoose.model("Food", foodSchema);
 export const HungerSpot = mongoose.model("HungerSpot", hungerSpotSchema);
-export const MonthlyDonation = mongoose.model('MonthlyDonation', monthlyDonationSchema);
+export const MonthlyDonation = mongoose.model(
+  "MonthlyDonation",
+  monthlyDonationSchema
+);

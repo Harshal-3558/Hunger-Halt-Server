@@ -33,6 +33,7 @@ mongoose
     HPChangeStream.on("change", (change) => {
       io.emit("HPDBChange", change);
     });
+    
   })
   .catch((err) => {
     console.log(err);

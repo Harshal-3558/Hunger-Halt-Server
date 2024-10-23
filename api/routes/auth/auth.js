@@ -102,4 +102,52 @@ router.get(
   }
 );
 
+router.post("/auth/updateFCM", async (req, res) => {
+  const { email, token } = req.body;
+  try {
+    await User.findOneAndUpdate({ email }, { FCMtoken: token });
+    res.sendStatus(200);
+  } catch (error) {
+    res.sendStatus(400);
+  }
+});
+
+router.post("/auth/updateDetails", async (req, res) => {
+  const { id, role, location, orgName, orgEmail, days } = req.body;
+  let updateData = {
+    role,
+    organization: orgName,
+    workingDays: days,
+  };
+
+  if (location.length > 0 && role === "volunteer") {
+    updateData.currentLocation = {
+      type: "Point",
+      coordinates: location,
+    };
+  }
+
+  try {
+    const updateRole = await User.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+    if (updateRole.role === "ngo") {
+      await NGO.create({
+        adminName: updateRole.name,
+        adminEmail: updateRole.email,
+        email: updateRole.email,
+        name: orgName,
+        email: orgEmail,
+        workingLocation: {
+          type: "Point",
+          coordinates: location,
+        },
+      });
+    }
+    res.status(200).send(updateRole);
+  } catch (err) {
+    res.status(400).send({ message: "Something went wrong" });
+  }
+});
+
 export default router;
