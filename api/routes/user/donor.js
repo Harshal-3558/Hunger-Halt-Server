@@ -9,7 +9,6 @@ const router = Router();
 
 router.post("/donor/livemap", async (req, res) => {
   const { userLocation } = req.body;
-  console.log(userLocation);
   try {
     const hungerSpots = await HungerSpot.find({});
     const ngos = await NGO.find({});
@@ -53,12 +52,22 @@ router.post("/donor/donateFood", async (req, res) => {
     const currentMonth = new Date().toLocaleString("default", {
       month: "long",
     });
-    await MonthlyDonation.create({
+    const existingDonation = await MonthlyDonation.findOne({
       month: currentMonth,
       year: currentYear,
-      amount: donate.qty,
-      donor: donate._id,
+      donorEmail: donate.donorEmail,
     });
+    if (existingDonation) {
+      existingDonation.amount += donate.qty;
+      await existingDonation.save();
+    } else {
+      await MonthlyDonation.create({
+        month: currentMonth,
+        year: currentYear,
+        amount: donate.qty,
+        donorEmail: donate.donorEmail,
+      });
+    }
 
     const maxDistance = 10 * 1000;
 
@@ -70,8 +79,6 @@ router.post("/donor/donateFood", async (req, res) => {
         },
       },
     });
-
-    console.log(users);
 
     let volEmails = [];
     let fcmTokens = [];
@@ -112,11 +119,35 @@ router.post("/donor/donateFood", async (req, res) => {
 
 router.get("/donor/monthly-donations", async (req, res) => {
   try {
-    const monthlyDonations = await MonthlyDonation.find({}).sort({ year: 1, month: 1 });
+    const monthlyDonations = await MonthlyDonation.aggregate([
+      {
+        $group: {
+          _id: { month: "$month", year: "$year" },
+          amount: { $sum: "$amount" },
+          createdAt: { $min: "$createdAt" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          month: "$_id.month",
+          year: "$_id.year",
+          amount: 1,
+          createdAt: 1,
+        },
+      },
+      {
+        $sort: {
+          createdAt: 1,
+        },
+      },
+    ]);
+
     const chartData = monthlyDonations.map((donation) => ({
       month: donation.month.substring(0, 3),
       "Amount of leftover food saved": donation.amount,
     }));
+
     res.status(200).json(chartData);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch data" });
@@ -132,6 +163,5 @@ router.post("/donor/donationStatus", async (req, res) => {
     res.sendStatus(400);
   }
 });
-
 
 export default router;
