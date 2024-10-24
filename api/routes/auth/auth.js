@@ -2,7 +2,7 @@ import { Router } from "express";
 import "./strategies.js";
 import passport from "passport";
 import bycrpt from "bcryptjs";
-import { User } from "../../schemas/schema2.js";
+import { NGO, User } from "../../schemas/schema2.js";
 
 const router = Router();
 const saltRound = 10;
@@ -113,12 +113,18 @@ router.post("/auth/updateFCM", async (req, res) => {
 });
 
 router.post("/auth/updateDetails", async (req, res) => {
-  const { id, role, location, orgName, orgEmail, days } = req.body;
+  const { id, role, location, orgName, orgEmail, days, phone, aadhaar, reg } =
+    req.body;
   let updateData = {
     role,
     organization: orgName,
     workingDays: days,
+    phone,
+    aadhaar,
+    reg
   };
+
+  console.log(updateData)
 
   if (location.length > 0 && role === "volunteer") {
     updateData.currentLocation = {
@@ -138,6 +144,7 @@ router.post("/auth/updateDetails", async (req, res) => {
         email: updateRole.email,
         name: orgName,
         email: orgEmail,
+        regNo: reg,
         workingLocation: {
           type: "Point",
           coordinates: location,
@@ -146,6 +153,7 @@ router.post("/auth/updateDetails", async (req, res) => {
     }
     res.status(200).send(updateRole);
   } catch (err) {
+    console.log(err)
     res.status(400).send({ message: "Something went wrong" });
   }
 });

@@ -8,6 +8,7 @@ const ngoSchema = new Schema({
   adminEmail: { type: String, require: true },
   name: { type: String, require: true },
   email: { type: String, require: true },
+  regNo: { type: Number },
   workingLocation: {
     type: { type: String, default: "Point" },
     coordinates: [Number],
@@ -43,6 +44,8 @@ const userSchema = new Schema({
     coordinates: [Number],
   },
   organization: { type: String },
+  aadhaar: { type: Number },
+  phone: { type: Number },
   workingDays: { type: [String] },
   password: { type: String },
   FCMtoken: { type: String },
