@@ -8,7 +8,7 @@ const ngoSchema = new Schema({
   adminEmail: { type: String, require: true },
   name: { type: String, require: true },
   email: { type: String, require: true },
-  regNo: { type: Number },
+  regNo: { type: String },
   workingLocation: {
     type: { type: String, default: "Point" },
     coordinates: [Number],
@@ -16,6 +16,7 @@ const ngoSchema = new Schema({
   workingAddress: { type: String, require: true },
   foodStored: [
     {
+      foodID: { type: String },
       foodName: { type: String },
       foodQTY: { type: Number },
       foodShelf: { type: Number },
@@ -53,7 +54,38 @@ const userSchema = new Schema({
 
 userSchema.index({ currentLocation: "2dsphere" });
 
+//NGO Registration
+const ngoRegistrationSchema = new Schema({
+  ngoName: { type: String },
+  regNo: {
+    type: String,
+    match: /^[A-Za-z0-9]+$/, // Allows letters and numbers only
+  },
+  address: { type: String },
+});
+
+//Biogas Registration
+const biogasRegistrationSchema = new Schema({
+  biogasName: { type: String },
+  regNo: { type: String },
+});
+
+//Biogas User
+const biogasUserSchema = new Schema({
+  email: { type: String, unique: true },
+  name: { type: String },
+  regNo: { type: String },
+  foodItem: { type: String },
+  foodQTY: { type: Number },
+});
+
 // Export models
 export const NGO = mongoose.model("NGO", ngoSchema);
 export const Work = mongoose.model("Work", workSchema);
 export const User = mongoose.model("User", userSchema);
+export const NgoReg = mongoose.model("NgoRegistration", ngoRegistrationSchema);
+export const BiogasReg = mongoose.model(
+  "BiogasRegistration",
+  biogasRegistrationSchema
+);
+export const BiogasUser = mongoose.model("BiogasUser", biogasUserSchema);

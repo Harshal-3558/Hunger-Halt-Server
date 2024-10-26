@@ -2,7 +2,7 @@ import { Router } from "express";
 import "./strategies.js";
 import passport from "passport";
 import bycrpt from "bcryptjs";
-import { NGO, User } from "../../schemas/schema2.js";
+import { NGO, NgoReg, User } from "../../schemas/schema2.js";
 
 const router = Router();
 const saltRound = 10;
@@ -121,10 +121,8 @@ router.post("/auth/updateDetails", async (req, res) => {
     workingDays: days,
     phone,
     aadhaar,
-    reg
+    reg,
   };
-
-  console.log(updateData)
 
   if (location.length > 0 && role === "volunteer") {
     updateData.currentLocation = {
@@ -134,6 +132,16 @@ router.post("/auth/updateDetails", async (req, res) => {
   }
 
   try {
+    let ngoData;
+    if (reg) {
+      ngoData = await NgoReg.findOne({
+        regNo: reg,
+      }).lean();
+      if (!ngoData) {
+        res.status(400).send({ message: "Invalid registration number" });
+        return;
+      }
+    }
     const updateRole = await User.findByIdAndUpdate(id, updateData, {
       new: true,
     });
@@ -153,7 +161,7 @@ router.post("/auth/updateDetails", async (req, res) => {
     }
     res.status(200).send(updateRole);
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.status(400).send({ message: "Something went wrong" });
   }
 });

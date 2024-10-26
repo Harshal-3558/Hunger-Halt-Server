@@ -1,5 +1,6 @@
 import Queue from "bull";
-import { Food, HungerSpot } from "../schemas/schema1.js";
+import { Biogas, Food, HungerSpot } from "../schemas/schema1.js";
+import { BiogasUser } from "../schemas/schema2.js";
 
 const foodExpiryQueue = new Queue("foodExpiry", {
   redis: {
@@ -58,7 +59,35 @@ foodExpiryQueue.process(10, async (job) => {
       const currentTime = new Date();
       if (currentTime >= expiryTime) {
         try {
+          const data = await Food.findById(id);
           await Food.findByIdAndUpdate(id, { foodExpired: true });
+          const currentDate = new Date();
+          const months = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+          ];
+
+          await Biogas.create({
+            foodItem: data.foodName,
+            foodQTY: data.qty,
+            month: months[currentDate.getMonth()],
+            year: currentDate.getFullYear(),
+          });
+          await BiogasUser.findOneAndUpdate(
+            { foodItem: { $exists: false }, foodQTY: { $exists: false } },
+            { foodItem: data.foodName, foodQTY: data.qty },
+            { new: true, sort: { _id: 1 } }
+          );
         } catch (error) {
           console.error("Error updating remainingShelfLife:", error);
         }

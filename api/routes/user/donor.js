@@ -12,7 +12,6 @@ router.post("/donor/livemap", async (req, res) => {
   try {
     const hungerSpots = await HungerSpot.find({});
     const ngos = await NGO.find({});
-    console.log(ngos)
     const volunteers = await User.find({ role: "volunteer" });
     res.status(200).json({ hungerSpots, ngos, volunteers });
   } catch (error) {
