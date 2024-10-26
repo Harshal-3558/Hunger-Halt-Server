@@ -10,7 +10,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { createServer } from "http";
 import Redis from "ioredis";
 import admin from "firebase-admin";
-import { Food, HungerSpot } from "./schemas/schema1.js";
+import { Food, HungerSpot, MonthlyDonation } from "./schemas/schema1.js";
 import { Work } from "./schemas/schema2.js";
 import bodyParser from "body-parser";
 
@@ -33,7 +33,10 @@ mongoose
     HPChangeStream.on("change", (change) => {
       io.emit("HPDBChange", change);
     });
-    
+    const MonthlyDonationChangeStream = MonthlyDonation.watch();
+    MonthlyDonationChangeStream.on("change", (change) => {
+      io.emit("MonthlyDonationDBChange", change);
+    });
   })
   .catch((err) => {
     console.log(err);

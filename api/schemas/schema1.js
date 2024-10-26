@@ -102,6 +102,34 @@ const monthlyDonationSchema = new Schema(
   }
 );
 
+//Biogas Schema
+const biogasSchema = new Schema({
+  month: {
+    type: String,
+    enum: [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ],
+    required: true,
+  },
+  year: {
+    type: Number,
+    required: true,
+  },
+  foodItem: { type: String },
+  foodQTY: { type: Number },
+});
+
 // Export models
 export const DonorUpdates = mongoose.model("DonorUpdates", donorUpdatesSchema);
 export const Food = mongoose.model("Food", foodSchema);
@@ -110,3 +138,4 @@ export const MonthlyDonation = mongoose.model(
   "MonthlyDonation",
   monthlyDonationSchema
 );
+export const Biogas = mongoose.model("Biogas", biogasSchema);

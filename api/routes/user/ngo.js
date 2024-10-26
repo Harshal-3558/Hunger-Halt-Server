@@ -8,7 +8,6 @@ router.post("/ngo/hungerSpot", async (req, res) => {
   const { userLocation } = req.body;
   try {
     const hungerSpots = await HungerSpot.find({});
-    console.log(hungerSpots);
     res.status(200).json(hungerSpots);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch hunger spots" });

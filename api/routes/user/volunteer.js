@@ -42,7 +42,7 @@ async function handleImageProcessing(req, res, processingFunction) {
 
     if (checkHash) {
       res.status(200).send({ message: "Image already exists", success: false });
-    } else if (resultJson) {
+    } else if (resultJson.isHungerSpot) {
       res
         .status(200)
         .send({ message: "Hunger Spot verified !", success: true, hash });
@@ -61,7 +61,7 @@ async function checkHungerSpot(imagePath) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI);
   const fileManager = new GoogleAIFileManager(process.env.GEMINI);
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash-002",
+    model: "gemini-1.5-flash",
     generationConfig: {
       topP: 0.95,
       topK: 40,
@@ -207,6 +207,7 @@ router.post("/volunteer/verifyFood", async (req, res) => {
       beneficiary: beneficiaries,
     });
     const hungerSpot = await HungerSpot.findOne({
+      isActive: true,
       location: {
         $near: {
           $geometry: foodData.location,
@@ -221,6 +222,7 @@ router.post("/volunteer/verifyFood", async (req, res) => {
       });
     } else {
       const food = {
+        foodID: foodData._id,
         foodName: foodData.foodName,
         foodQTY: foodData.qty,
         foodShelf: foodData.shelfLife,
@@ -228,7 +230,7 @@ router.post("/volunteer/verifyFood", async (req, res) => {
       };
       const ngoSpot = await NGO.findOneAndUpdate(
         {
-          currentLocation: {
+          workingLocation: {
             $near: {
               $geometry: foodData.location,
             },
@@ -248,7 +250,7 @@ router.post("/volunteer/verifyFood", async (req, res) => {
     foodExpiryQueue.add({ shelfLife, id });
     res.status(200).send(hungerSpot);
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     res.sendStatus(400);
   }
 });
@@ -260,17 +262,23 @@ router.post("/volunteer/getAssignedHungerSpot", async (req, res) => {
       assignedVolunteerEmail: email,
       foodDonationStatus: "pending",
     });
+    let data;
     if (value) {
-      const data = await HungerSpot.findOne({
+      data = await HungerSpot.findOne({
         _id: value.hungerSpotID,
         isActive: true,
       });
+      if (!data) {
+        const ngo = await NGO.findOne({ "foodStored.foodID": value._id });
+        res.status(200).send(ngo);
+        return;
+      }
       res.status(200).send(data);
     } else {
       res.status(200).send({});
     }
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     res.status(400).send(error);
   }
 });
@@ -297,9 +305,9 @@ router.post("/volunteer/checkBeforeDonation", async (req, res) => {
 router.post("/volunteer/completeDonation", async (req, res) => {
   const { spotID, beneficiaryNO, beneficiary } = req.body;
   try {
-    await Food.findOneAndUpdate(
-      { SpotID: spotID },
-      { foodDonationStatus: "donated" }
+    const data = await Food.updateMany(
+      { hungerSpotID: spotID },
+      { foodDonationStatus: "donated", $unset: { remainingShelfLife: "" } }
     );
     const remainingBeneficiary = beneficiaryNO - beneficiary;
     const value = await HungerSpot.findByIdAndUpdate(spotID, {
